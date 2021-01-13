@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import com.google.gson.JsonObject;
 import org.apache.flink.api.common.functions.AggregateFunction;
 
-
 import flink.kafka_utility.KafkaRecord;
 
 public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayList<KafkaRecord>, KafkaRecord> {
@@ -34,7 +33,7 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
         }
 
         data.addProperty("numActiveCars", distinctCars.size());
-        return new KafkaRecord(data);
+        return new KafkaRecord(data, "region-usa-info");
     }
 
     @Override

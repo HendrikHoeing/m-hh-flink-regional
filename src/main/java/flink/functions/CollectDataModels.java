@@ -34,7 +34,7 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
 
         head.add("models", data);
 
-        out.collect(new KafkaRecord(head));
+        out.collect(new KafkaRecord(head,"region-usa-info"));
 
     }
 }

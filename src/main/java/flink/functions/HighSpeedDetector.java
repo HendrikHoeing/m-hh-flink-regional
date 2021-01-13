@@ -44,7 +44,7 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
         if ((mphTotal / numRecords) > HIGH_SPEED) {
             data.addProperty("info", "Speed too high!");
-            return new KafkaRecord(key, data);
+            return new KafkaRecord(key, data, "car-usa-info");
         } else {
             return null;
         }

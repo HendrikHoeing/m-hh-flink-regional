@@ -65,12 +65,19 @@ public class AnomalyDetectionJob {
 
 		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key); // keyBy -> High costs
 
+
+
+
+		
 		/// Functions
 
+		//CAR Analysis
 		// Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
 				.filter(record -> record != null).addSink(kafkaProducer);
 
+
+		//REGION Analysis
 		// Counts all active cars every x seconds
 		regionStream.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new ActiveCarsDetector())
 				.addSink(kafkaProducer);

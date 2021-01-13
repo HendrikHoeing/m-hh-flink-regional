@@ -31,6 +31,6 @@ public class CollectDataFuel extends ProcessAllWindowFunction<Tuple2<String, Int
 
         head.add("fuel", data);
 
-        out.collect(new KafkaRecord(head));
+        out.collect(new KafkaRecord(head,"region-usa-info"));
     }
 }
