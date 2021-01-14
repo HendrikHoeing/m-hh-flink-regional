@@ -1,9 +1,6 @@
 package flink.kafka_utility;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -19,7 +16,7 @@ public class KafkaSerialization implements KafkaSerializationSchema<KafkaRecord>
         System.out.println("Topic: "+ record.topic + " || Key: " + record.key + " || Value: " + record.data);
 
         if (record.key != null) {
-            return new ProducerRecord<byte[], byte[]>(record.topic, record.key.getBytes(),
+            return new ProducerRecord<byte[], byte[]>(record.topic, gson.toJson(record.key).getBytes(),
                     gson.toJson(record.data).getBytes());
         } else {
             return new ProducerRecord<byte[], byte[]>(record.topic, gson.toJson(record.data).getBytes());

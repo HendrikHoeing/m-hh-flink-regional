@@ -18,8 +18,8 @@ public class CollectDataFuel extends ProcessAllWindowFunction<Tuple2<String, Int
             Iterable<Tuple2<String, Integer>> elements, Collector<KafkaRecord> out) throws Exception {
 
         JsonObject data = new JsonObject();
-        JsonObject head = new JsonObject();
-        
+        JsonObject key = new JsonObject();
+
         for (Tuple2<String, Integer> value : elements) {
 
             if (!data.has(value.f0)) {
@@ -29,8 +29,8 @@ public class CollectDataFuel extends ProcessAllWindowFunction<Tuple2<String, Int
             }
         }
 
-        head.add("fuel", data);
+        key.addProperty("type", "fuel");
 
-        out.collect(new KafkaRecord(head,"region-usa-info"));
+        out.collect(new KafkaRecord(key, data, "region-usa-info"));
     }
 }

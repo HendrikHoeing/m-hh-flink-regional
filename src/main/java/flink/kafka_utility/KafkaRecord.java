@@ -18,13 +18,13 @@ public class KafkaRecord {
 		this.topic = topic;
 	};
 
-	public KafkaRecord(String key, JsonObject data, String topic) {
+	public KafkaRecord(JsonObject key, JsonObject data, String topic) {
 		this.key = key;
 		this.data = data;
 		this.topic = topic;
 	}
 
-	public String key;
+	public JsonObject key = new JsonObject();
 	public JsonObject data = new JsonObject();
 	public long timestamp;
 	public long offset;

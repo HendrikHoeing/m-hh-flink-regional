@@ -21,7 +21,7 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
 
         // Elements has all distinct cars with their labels
         JsonObject data = new JsonObject();
-        JsonObject head = new JsonObject();
+        JsonObject key = new JsonObject();
 
         for (Tuple2<String, Integer> value : elements) {
 
@@ -32,9 +32,9 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
             }
         }
 
-        head.add("models", data);
+        key.addProperty("type", "models");
 
-        out.collect(new KafkaRecord(head,"region-usa-info"));
+        out.collect(new KafkaRecord(key, data, "region-usa-info"));
 
     }
 }

@@ -63,7 +63,7 @@ public class AnomalyDetectionJob {
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer);
 
-		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key); // keyBy -> High costs
+		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key.get("carId").getAsString()); // keyBy -> High costs
 
 
 

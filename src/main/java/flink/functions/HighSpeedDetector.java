@@ -32,7 +32,7 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
     @Override
     public KafkaRecord getResult(List<KafkaRecord> accumulator) {
         JsonObject data = new JsonObject();
-        String key = accumulator.get(0).key;
+        JsonObject key = accumulator.get(0).key;
         Double mphTotal = 0.0;
         int numRecords = 0;
 
