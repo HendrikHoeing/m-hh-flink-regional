@@ -29,12 +29,17 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
         ArrayList<String> distinctCars = new ArrayList<>();
 
         for (KafkaRecord record : accumulator) {
-            if (!distinctCars.contains(record.key.get("carId").getAsString())) {
-                distinctCars.add(record.key.get("carId").getAsString());
+            if (!distinctCars.contains(record.key.get("id").getAsString())) {
+                distinctCars.add(record.key.get("id").getAsString());
             }
         }
 
-        data.addProperty("numActiveCars", distinctCars.size());
+        data.addProperty("x", System.currentTimeMillis());
+        data.addProperty("y", distinctCars.size());
+        data.addProperty("xname", "");
+        data.addProperty("yname", "Amount");
+        data.addProperty("type", "scatter");
+        
         key.addProperty("type", "numActiveCars");
 
         return new KafkaRecord(key, data, "region-usa-info");

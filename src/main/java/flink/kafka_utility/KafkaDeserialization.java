@@ -29,7 +29,7 @@ public class KafkaDeserialization implements KafkaDeserializationSchema<KafkaRec
 
 		Map<String, Object> metadata = gson.fromJson(new String(record.key(), StandardCharsets.UTF_8), Map.class);
 
-		rec.key.addProperty("carId", (String) metadata.get("carId"));
+		rec.key.addProperty("id", (String) metadata.get("id"));
 
 		// Decode and cast to JSON Object
 		rec.data = gson.fromJson(new String(record.value(), StandardCharsets.UTF_8), JsonObject.class);

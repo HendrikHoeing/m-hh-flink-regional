@@ -1,0 +1,23 @@
+
+key = {
+    "type": "models"
+} 
+
+
+data = {
+    "x": [
+        "B-Klasse",
+        "A-Klasse",
+        "G-Klasse"
+    ],
+    "y": [
+        2,
+        1,
+        2
+    ],
+    "xname" : "Amount",
+    "yname" : "Model",
+    "type": "bar",
+    "layout": {},
+    "timestamp": 1232133
+}

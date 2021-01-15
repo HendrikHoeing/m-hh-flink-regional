@@ -55,7 +55,7 @@ public class AnomalyDetectionJob {
 		// Consumer
 		FlinkKafkaConsumer<KafkaRecord> kafkaConsumer = new FlinkKafkaConsumer<KafkaRecord>("car-usa",
 				new KafkaDeserialization(), propertiesConsumer);
-		kafkaConsumer.setStartFromLatest();
+		kafkaConsumer.setStartFromEarliest();
 
 		// Producer
 		FlinkKafkaProducer<KafkaRecord> kafkaProducer = new FlinkKafkaProducer<KafkaRecord>("car-usa-info",
@@ -63,7 +63,7 @@ public class AnomalyDetectionJob {
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer);
 
-		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key.get("carId").getAsString()); // keyBy -> High costs
+		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key.get("id").getAsString()); // keyBy -> High costs
 
 
 

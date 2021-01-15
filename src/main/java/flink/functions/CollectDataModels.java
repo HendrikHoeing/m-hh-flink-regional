@@ -1,7 +1,11 @@
 package flink.functions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -19,20 +23,32 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
     public void process(ProcessAllWindowFunction<Tuple2<String, Integer>, KafkaRecord, TimeWindow>.Context context,
             Iterable<Tuple2<String, Integer>> elements, Collector<KafkaRecord> out) throws Exception {
 
-        // Elements has all distinct cars with their labels
-        JsonObject data = new JsonObject();
         JsonObject key = new JsonObject();
+        JsonObject data = new JsonObject();
 
-        for (Tuple2<String, Integer> value : elements) {
-
-            if (!data.has(value.f0)) {
-                data.addProperty(value.f0, value.f1);
-            } else {
-                data.addProperty(value.f0, data.get(value.f0).getAsInt() + value.f1);
-            }
-        }
+        JsonObject data_distinct = new JsonObject();
+        JsonArray x = new JsonArray();
+        JsonArray y = new JsonArray();
 
         key.addProperty("type", "models");
+
+        for (Tuple2<String, Integer> value : elements) {
+            if (!data_distinct.has(value.f0)) {
+                data_distinct.addProperty(value.f0, value.f1);
+            } else {
+                data_distinct.addProperty(value.f0, data_distinct.get(value.f0).getAsInt() + value.f1);
+            }
+        }
+        for (Map.Entry<String, JsonElement> entry : data_distinct.entrySet()) {
+            x.add(entry.getKey());
+            y.add(entry.getValue());
+        }
+
+        data.add("x", x);
+        data.add("y", y);
+        data.addProperty("xname", "Model");
+        data.addProperty("yname", "Amount");
+        data.addProperty("type", "scatter");
 
         out.collect(new KafkaRecord(key, data, "region-usa-info"));
 
