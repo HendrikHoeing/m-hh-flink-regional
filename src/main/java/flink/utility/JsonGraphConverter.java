@@ -13,6 +13,7 @@ public class JsonGraphConverter {
 
         JsonObject jsonGraph = new JsonObject();
 
+        jsonGraph.addProperty("title", title);     
         jsonGraph.addProperty("xname", xName);
         jsonGraph.addProperty("yname", yName);
         jsonGraph.addProperty("type", chartType);
