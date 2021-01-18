@@ -47,8 +47,9 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
         data.add("jsonGraph", jsonGraph);
         data.add("results", results);
 
-        key.addProperty("region", "usa");
         key.addProperty("type", "models");
+        key.addProperty("origin", "f590cd1c-daec-4686-b9af-0bb831f9d5bc");
+        key.addProperty("region", "usa");
 
         out.collect(new KafkaRecord(key, data, "region-usa-analysis"));
 
