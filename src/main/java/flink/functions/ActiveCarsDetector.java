@@ -2,8 +2,6 @@ package flink.functions;
 
 import java.util.ArrayList;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.flink.api.common.functions.AggregateFunction;
 
@@ -27,12 +25,11 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
 
     @Override
     public KafkaRecord getResult(ArrayList<KafkaRecord> accumulator) {
-        
+
         JsonObject key = new JsonObject();
         JsonObject data = new JsonObject();
-
-        JsonArray x = new JsonArray();
-        JsonArray y = new JsonArray();
+        JsonObject jsonGraph = new JsonObject();
+        JsonObject results = new JsonObject();
 
         ArrayList<String> distinctCars = new ArrayList<>();
 
@@ -42,15 +39,20 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
             }
         }
 
-        data = JsonGraphConverter.convertGraph("Number of active cars", "Time", "Amount", "scatter", null);
+        results.addProperty("numActiveCars", distinctCars.size());
 
-        data.addProperty("x", System.currentTimeMillis());
-        data.addProperty("y", distinctCars.size());
- 
+        jsonGraph = JsonGraphConverter.convertGraph("Number of active cars", "Time", "Amount", "scatter", null);
+
+        jsonGraph.addProperty("x", System.currentTimeMillis());
+        jsonGraph.addProperty("y", distinctCars.size());
+
+        data.add("jsonGraph", jsonGraph);
+        data.add("results", results);
+
         key.addProperty("region", "usa");
         key.addProperty("type", "numActiveCars");
 
-        return new KafkaRecord(key, data, "region-usa-info");
+        return new KafkaRecord(key, data, "region-usa-analysis");
     }
 
     @Override

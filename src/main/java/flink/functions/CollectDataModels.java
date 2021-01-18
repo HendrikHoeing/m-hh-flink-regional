@@ -2,7 +2,6 @@ package flink.functions;
 
 import java.util.Map;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,29 +24,33 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
 
         JsonObject key = new JsonObject();
         JsonObject data = new JsonObject();
-        
+        JsonObject jsonGraph = new JsonObject();
+        JsonObject results = new JsonObject();
+
         JsonArray x = new JsonArray();
         JsonArray y = new JsonArray();
 
         for (Tuple2<String, Integer> value : elements) {
-            if (!data.has(value.f0)) {
-                data.addProperty(value.f0, value.f1);
+            if (!results.has(value.f0)) {
+                results.addProperty(value.f0, value.f1);
             } else {
-                data.addProperty(value.f0, data.get(value.f0).getAsInt() + value.f1);
+                results.addProperty(value.f0, results.get(value.f0).getAsInt() + value.f1);
             }
         }
-        for (Map.Entry<String, JsonElement> entry : data.entrySet()) {
+        for (Map.Entry<String, JsonElement> entry : results.entrySet()) {
             x.add(entry.getKey());
             y.add(entry.getValue());
         }
 
-        data = JsonGraphConverter.convertGraph("Number of models", x, y, "Models", "Amount", "scatter", null);
-        
+        jsonGraph = JsonGraphConverter.convertGraph("Number of models", x, y, "Models", "Amount", "scatter", null);
+
+        data.add("jsonGraph", jsonGraph);
+        data.add("results", results);
+
         key.addProperty("region", "usa");
         key.addProperty("type", "models");
-        
-        
-        out.collect(new KafkaRecord(key, data, "region-usa-info"));
+
+        out.collect(new KafkaRecord(key, data, "region-usa-analysis"));
 
     }
 }
