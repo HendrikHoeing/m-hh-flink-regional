@@ -50,7 +50,6 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
         data.add("results", results);
 
         key.addProperty("type", "numActiveCars");
-        key.addProperty("origin", "f590cd1c-daec-4686-b9af-0bb831f9d5bc");
         key.addProperty("region", "usa");
 
         return new KafkaRecord(key, data, "region-usa-analysis");

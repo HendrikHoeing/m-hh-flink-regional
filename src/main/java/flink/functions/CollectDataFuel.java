@@ -50,7 +50,6 @@ public class CollectDataFuel extends ProcessAllWindowFunction<Tuple2<String, Int
         data.add("jsonGraph", jsonGraph);
         data.add("results", results);
 
-        key.addProperty("origin", "f590cd1c-daec-4686-b9af-0bb831f9d5bc");
         key.addProperty("type", "fuel");
         key.addProperty("region", "usa");
 
