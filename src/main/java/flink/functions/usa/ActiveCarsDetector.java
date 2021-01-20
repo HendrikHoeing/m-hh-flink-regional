@@ -1,4 +1,4 @@
-package flink.functions;
+package flink.functions.usa;
 
 import java.util.ArrayList;
 
@@ -7,6 +7,7 @@ import org.apache.flink.api.common.functions.AggregateFunction;
 
 import flink.kafka_utility.KafkaRecord;
 import flink.utility.JsonGraphConverter;
+import flink.utility.TimeGraphConverter;
 
 public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayList<KafkaRecord>, KafkaRecord> {
 
@@ -41,9 +42,9 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
 
         results.addProperty("numActiveCars", distinctCars.size());
 
-        jsonGraph = JsonGraphConverter.convertGraph("Number of active cars", "Time", "Amount", "scatter", null);
+        jsonGraph = JsonGraphConverter.convertGraph("Number of active cars", "Time", "Amount", "line");
 
-        jsonGraph.addProperty("x", System.currentTimeMillis());
+        jsonGraph.addProperty("x", TimeGraphConverter.convertMillisToGraphFormat(System.currentTimeMillis()));
         jsonGraph.addProperty("y", distinctCars.size());
 
         data.add("jsonGraph", jsonGraph);

@@ -1,4 +1,4 @@
-package flink.functions;
+package flink.functions.usa;
 
 import java.util.Map;
 
@@ -14,7 +14,7 @@ import org.apache.flink.util.Collector;
 import flink.kafka_utility.KafkaRecord;
 import flink.utility.JsonGraphConverter;
 
-public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, Integer>, KafkaRecord, TimeWindow> {
+public class CollectDataFuel extends ProcessAllWindowFunction<Tuple2<String, Integer>, KafkaRecord, TimeWindow> {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,26 +31,27 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
         JsonArray y = new JsonArray();
 
         for (Tuple2<String, Integer> value : elements) {
+
             if (!results.has(value.f0)) {
                 results.addProperty(value.f0, value.f1);
             } else {
                 results.addProperty(value.f0, results.get(value.f0).getAsInt() + value.f1);
             }
         }
+
         for (Map.Entry<String, JsonElement> entry : results.entrySet()) {
             x.add(entry.getKey());
             y.add(entry.getValue());
         }
 
-        jsonGraph = JsonGraphConverter.convertGraph("Number of models", x, y, "Models", "Amount", "scatter", null);
+        jsonGraph = JsonGraphConverter.convertGraph("Number of fuel types", x, y, "Fuel Type", "Amount", "pie");
 
         data.add("jsonGraph", jsonGraph);
         data.add("results", results);
 
-        key.addProperty("type", "models");
+        key.addProperty("type", "fuel");
         key.addProperty("region", "usa");
 
         out.collect(new KafkaRecord(key, data, "region-usa-analysis"));
-
     }
 }

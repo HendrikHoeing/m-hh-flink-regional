@@ -1,4 +1,4 @@
-package flink.functions;
+package flink.functions.eu;
 
 import java.util.Map;
 
@@ -44,15 +44,14 @@ public class CollectDataFuel extends ProcessAllWindowFunction<Tuple2<String, Int
             y.add(entry.getValue());
         }
 
-        jsonGraph = JsonGraphConverter.convertGraph("Number of fuel types", x, y, "Fuel Type", "Amount", "scatter",
-                null);
+        jsonGraph = JsonGraphConverter.convertGraph("Number of fuel types", x, y, "Fuel Type", "Amount", "pie");
 
         data.add("jsonGraph", jsonGraph);
         data.add("results", results);
 
         key.addProperty("type", "fuel");
-        key.addProperty("region", "usa");
+        key.addProperty("region", "eu");
 
-        out.collect(new KafkaRecord(key, data, "region-usa-analysis"));
+        out.collect(new KafkaRecord(key, data, "region-eu-analysis"));
     }
 }

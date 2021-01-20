@@ -1,45 +1,20 @@
 package flink;
 
-import java.util.List;
 import java.util.Properties;
-
-import com.google.gson.JsonObject;
-
-import org.apache.flink.api.common.functions.AggregateFunction;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.ReduceFunction;
-import org.apache.flink.api.common.functions.RichReduceFunction;
-import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.api.common.state.StateTtlConfig;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
-import org.apache.flink.util.Collector;
 
-import flink.functions.ActiveCarsDetector;
-import flink.functions.CollectDataFuel;
-import flink.functions.CollectDataModels;
-import flink.functions.FuelTypeDetector;
-import flink.functions.HighSpeedDetector;
-import flink.functions.ModelTypeDetector;
-import flink.kafka_utility.KafkaRecord;
-import flink.kafka_utility.KafkaSerialization;
-import flink.kafka_utility.KafkaDeserialization;
+import flink.functions.*;
+import flink.functions.usa.*;
+import flink.kafka_utility.*;
 
-public class AnomalyDetectionJob {
+public class AnalysisUSA {
 
 	public static void main(String[] args) throws Exception {
 
@@ -58,7 +33,7 @@ public class AnomalyDetectionJob {
 		kafkaConsumer.setStartFromEarliest();
 
 		// Producer
-		FlinkKafkaProducer<KafkaRecord> kafkaProducer = new FlinkKafkaProducer<KafkaRecord>("car-usa-info",
+		FlinkKafkaProducer<KafkaRecord> kafkaProducer = new FlinkKafkaProducer<KafkaRecord>("car-usa-analysis",
 				new KafkaSerialization(), propertiesConsumer, Semantic.EXACTLY_ONCE);
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer);

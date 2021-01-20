@@ -1,13 +1,9 @@
-package flink.functions;
+package flink.functions.eu;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import java.util.*;
 import com.google.gson.JsonObject;
 
 import org.apache.flink.api.common.functions.AggregateFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
 
 import flink.kafka_utility.KafkaRecord;
 
@@ -38,13 +34,13 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
         // Look through all records
         for (KafkaRecord record : accumulator) {
-            mphTotal += record.data.get("mph").getAsDouble();
+            mphTotal += record.data.get("kmh").getAsDouble();
             numRecords++;
         }
 
         if ((mphTotal / numRecords) > HIGH_SPEED) {
             data.addProperty("info", "Speed too high!");
-            return new KafkaRecord(key, data, "car-usa-analysis");
+            return new KafkaRecord(key, data, "car-eu-analysis");
         } else {
             return null;
         }
