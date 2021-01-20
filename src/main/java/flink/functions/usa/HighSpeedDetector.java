@@ -11,7 +11,7 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
     private static final long serialVersionUID = 1L;
 
-    private static final double HIGH_SPEED = 100.00;
+    private static final double HIGH_SPEED = 150.00;
 
     @Override
     public List<KafkaRecord> createAccumulator() {

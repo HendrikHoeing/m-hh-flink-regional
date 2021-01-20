@@ -1,6 +1,7 @@
 package flink;
 
 import java.util.Properties;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -13,6 +14,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
 import flink.functions.*;
 import flink.functions.eu.*;
 import flink.kafka_utility.*;
+import flink.kafka_utility.KafkaRecord;
 
 public class AnalysisEU {
 
@@ -38,21 +40,19 @@ public class AnalysisEU {
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer);
 
-		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key.get("id").getAsString()); // keyBy -> High costs
+		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key.get("id").getAsString()); // keyBy
+																														// ->
+																														// High
+																														// costs
 
-
-
-
-		
 		/// Functions
 
-		//CAR Analysis
+		// CAR Analysis
 		// Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
 				.filter(record -> record != null).addSink(kafkaProducer);
 
-
-		//REGION Analysis
+		// REGION Analysis
 		// Counts all active cars every x seconds
 		regionStream.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new ActiveCarsDetector())
 				.addSink(kafkaProducer);
@@ -69,6 +69,11 @@ public class AnalysisEU {
 				.aggregate(new FuelTypeDetector()) // Aggregate all distinct IDs into one Tuple (fuel, 1)
 				// Collect data from all windows and transform to one kafka record
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataFuel())
+				.addSink(kafkaProducer);
+
+		// Position of all cars
+		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new PosProcesser()) //Returns Position of latest record in this timeframe
+				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos()) //Collects positions and creates output record
 				.addSink(kafkaProducer);
 
 		env.execute();

@@ -71,6 +71,11 @@ public class AnalysisUSA {
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataFuel())
 				.addSink(kafkaProducer);
 
+						// Position of all cars
+		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new PosProcesser()) //Returns Position of latest record in this timeframe
+		.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos()) //Collects positions and creates output record
+		.addSink(kafkaProducer);
+
 		env.execute();
 
 	}
