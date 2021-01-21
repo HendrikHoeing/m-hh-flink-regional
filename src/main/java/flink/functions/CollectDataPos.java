@@ -1,4 +1,4 @@
-package flink.functions.eu;
+package flink.functions;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -19,7 +19,8 @@ public class CollectDataPos extends ProcessAllWindowFunction<Tuple2<Float, Float
     public void process(ProcessAllWindowFunction<Tuple2<Float, Float>, KafkaRecord, TimeWindow>.Context context,
             Iterable<Tuple2<Float, Float>> elements, Collector<KafkaRecord> out) throws Exception {
         /**
-         * Creates json graph object and kafka record for distinct car positions at given point
+         * Creates json graph object and kafka record for distinct car positions at
+         * given point
          */
 
         JsonObject key = new JsonObject();
@@ -35,18 +36,17 @@ public class CollectDataPos extends ProcessAllWindowFunction<Tuple2<Float, Float
             y.add(value.f1);
         }
 
-        jsonGraph = JsonGraphConverter.convertGraph("Position of cars in the EU", x, y, "", "", "scattergeo");
+        jsonGraph = JsonGraphConverter.convertGraph("Position of cars in the usa", x, y, "", "", "scattergeo");
 
         JsonObject scope = new JsonObject();
-        scope.addProperty("scope", "eu");
+        scope.addProperty("scope", "usa");
         jsonGraph.add("geo", scope);
 
         data.add("jsonGraph", jsonGraph);
         data.add("results", results);
 
         key.addProperty("type", "pos");
-        key.addProperty("region", "eu");
 
-        out.collect(new KafkaRecord(key, data, "region-eu-analysis"));
+        out.collect(new KafkaRecord(key, data));
     }
 }

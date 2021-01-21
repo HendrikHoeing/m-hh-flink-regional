@@ -11,7 +11,6 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
 
 import flink.functions.*;
-import flink.functions.usa.*;
 import flink.kafka_utility.*;
 
 public class AnalysisUSA {
@@ -33,8 +32,10 @@ public class AnalysisUSA {
 		kafkaConsumer.setStartFromEarliest();
 
 		// Producer
-		FlinkKafkaProducer<KafkaRecord> kafkaProducer = new FlinkKafkaProducer<KafkaRecord>("car-usa-analysis",
-				new KafkaSerialization(), propertiesConsumer, Semantic.EXACTLY_ONCE);
+		FlinkKafkaProducer<KafkaRecord> kafkaProducerRegion = new FlinkKafkaProducer<KafkaRecord>("region-usa-analysis",
+				new KafkaSerialization("region-usa-analysis"), propertiesConsumer, Semantic.EXACTLY_ONCE);
+		FlinkKafkaProducer<KafkaRecord> kafkaProducerCar = new FlinkKafkaProducer<KafkaRecord>("car-usa-analysis",
+				new KafkaSerialization("car-usa-analysis"), propertiesConsumer, Semantic.EXACTLY_ONCE);
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer);
 
@@ -45,16 +46,16 @@ public class AnalysisUSA {
 		/// Functions
 
 		// CAR
-		
+
 		//Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
-				.filter(record -> record != null).addSink(kafkaProducer);
+				.filter(record -> record != null).addSink(kafkaProducerCar);
 
 		// REGION
 
 		//Counts all active cars 
 		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
-				.aggregate(new ActiveCarsDetector()).addSink(kafkaProducer);
+				.aggregate(new ActiveCarsDetector()).addSink(kafkaProducerRegion);
 
 		/*
 		 * Count distinct car models
@@ -64,7 +65,7 @@ public class AnalysisUSA {
 		 */
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new ModelTypeDetector())
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataModels())
-				.addSink(kafkaProducer);
+				.addSink(kafkaProducerRegion);
 
 		/*
 		 * Count distinct fuel types
@@ -74,7 +75,7 @@ public class AnalysisUSA {
 		 */
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new FuelTypeDetector())
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataFuel())
-				.addSink(kafkaProducer);
+				.addSink(kafkaProducerRegion);
 
 		/*
 		 * Position of all cars
@@ -84,7 +85,7 @@ public class AnalysisUSA {
 		 */
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new PosProcesser())
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos())
-				.addSink(kafkaProducer);
+				.addSink(kafkaProducerRegion);
 
 		env.execute();
 

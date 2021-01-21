@@ -1,4 +1,4 @@
-package flink.functions.eu;
+package flink.functions;
 
 import java.util.*;
 import com.google.gson.JsonObject;
@@ -11,7 +11,7 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
     private static final long serialVersionUID = 1L;
 
-    private static final double HIGH_SPEED = 100.00;
+    private static final double HIGH_SPEED = 150.00;
 
     @Override
     public List<KafkaRecord> createAccumulator() {
@@ -30,6 +30,7 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
         /**
          * Creates kafka record for if speed limit above given threshhold
          */
+
         JsonObject data = new JsonObject();
         JsonObject key = accumulator.get(0).key;
         Double mphTotal = 0.0;
@@ -37,13 +38,13 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
         // Look through all records
         for (KafkaRecord record : accumulator) {
-            mphTotal += record.data.get("kmh").getAsDouble();
+            mphTotal += record.data.get("mph").getAsDouble();
             numRecords++;
         }
 
         if ((mphTotal / numRecords) > HIGH_SPEED) {
             data.addProperty("info", "Speed too high!");
-            return new KafkaRecord(key, data, "car-eu-analysis");
+            return new KafkaRecord(key, data);
         } else {
             return null;
         }

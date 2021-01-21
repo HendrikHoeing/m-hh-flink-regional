@@ -1,4 +1,4 @@
-package flink.functions.eu;
+package flink.functions;
 
 import java.util.ArrayList;
 
@@ -54,9 +54,8 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
         data.add("results", results);
 
         key.addProperty("type", "numActiveCars");
-        key.addProperty("region", "eu");
 
-        return new KafkaRecord(key, data, "region-eu-analysis");
+        return new KafkaRecord(key, data);
     }
 
     @Override

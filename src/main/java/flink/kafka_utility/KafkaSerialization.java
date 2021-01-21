@@ -7,6 +7,11 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 public class KafkaSerialization implements KafkaSerializationSchema<KafkaRecord> {
 
     private static final long serialVersionUID = 1L;
+    private String topic;
+
+    public KafkaSerialization(String topic){
+        this.topic = topic;
+    }
 
     @Override
     public ProducerRecord<byte[], byte[]> serialize(KafkaRecord record, Long timestamp) {
@@ -14,10 +19,10 @@ public class KafkaSerialization implements KafkaSerializationSchema<KafkaRecord>
         Gson gson = new Gson();
 
         if (record.key != null) {
-            return new ProducerRecord<byte[], byte[]>(record.topic, gson.toJson(record.key).getBytes(),
+            return new ProducerRecord<byte[], byte[]>(this.topic, gson.toJson(record.key).getBytes(),
                     gson.toJson(record.data).getBytes());
         } else {
-            return new ProducerRecord<byte[], byte[]>(record.topic, gson.toJson(record.data).getBytes());
+            return new ProducerRecord<byte[], byte[]>(this.topic, gson.toJson(record.data).getBytes());
         }
     }
 
