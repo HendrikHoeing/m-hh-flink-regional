@@ -11,6 +11,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
 
 import flink.functions.*;
+import flink.functions.usa.CollectDataPos;
 import flink.functions.usa.HighSpeedDetector;
 import flink.kafka_utility.*;
 
