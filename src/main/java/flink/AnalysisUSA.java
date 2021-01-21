@@ -11,6 +11,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
 
 import flink.functions.*;
+import flink.functions.usa.HighSpeedDetector;
 import flink.kafka_utility.*;
 
 public class AnalysisUSA {
@@ -41,19 +42,17 @@ public class AnalysisUSA {
 
 		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.data.get("id").getAsString());
 
-
-
 		/// Functions
 
 		// CAR
 
-		//Detect cars with high speed
+		// Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
 				.filter(record -> record != null).addSink(kafkaProducerCar);
 
 		// REGION
 
-		//Counts all active cars 
+		// Counts all active cars
 		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
 				.aggregate(new ActiveCarsDetector()).addSink(kafkaProducerRegion);
 
@@ -87,8 +86,8 @@ public class AnalysisUSA {
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos())
 				.addSink(kafkaProducerRegion);
 
-		env.execute();
-
 		System.out.println("Flink Job started.");
+
+		env.execute();
 	}
 }

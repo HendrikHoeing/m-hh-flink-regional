@@ -12,6 +12,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
 
 import flink.functions.*;
+import flink.functions.eu.HighSpeedDetector;
 import flink.kafka_utility.*;
 import flink.kafka_utility.KafkaRecord;
 
@@ -88,8 +89,9 @@ public class AnalysisEU {
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos())
 				.addSink(kafkaProducerRegion);
 
+		System.out.println("Flink Job started.");
+
 		env.execute();
 
-		System.out.println("Flink Job started.");
 	}
 }
