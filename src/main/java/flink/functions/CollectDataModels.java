@@ -52,7 +52,6 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
         data.add("results", results);
 
         key.addProperty("type", "models");
-        key.addProperty("region", "usa");
 
         out.collect(new KafkaRecord(key, data));
 
