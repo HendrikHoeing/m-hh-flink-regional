@@ -47,16 +47,14 @@ public class AnalysisEU {
 		/// Functions
 
 		// CAR
-		/*
-		 * Detect cars with high speed
-		 */
+
+		// Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
 				.filter(record -> record != null).addSink(kafkaProducer);
 
 		// REGION
-		/*
-		 * Counts all active cars
-		 */
+		
+		// Counts all active cars
 		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
 				.aggregate(new ActiveCarsDetector()).addSink(kafkaProducer);
 
