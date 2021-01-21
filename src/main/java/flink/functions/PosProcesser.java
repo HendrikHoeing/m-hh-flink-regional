@@ -18,8 +18,8 @@ public class PosProcesser extends ProcessWindowFunction<KafkaRecord, Tuple2<Floa
 
         KafkaRecord latestRecord = Iterables.getLast(elements);
 
-        Float lat = latestRecord.data.get("pos").getAsJsonObject().get("lat").getAsFloat();
-        Float lon = latestRecord.data.get("pos").getAsJsonObject().get("lon").getAsFloat();
+        Float lat = latestRecord.data.get("lat").getAsFloat();
+        Float lon = latestRecord.data.get("lon").getAsFloat();
         out.collect(new Tuple2<>(lat, lon));
 
     }

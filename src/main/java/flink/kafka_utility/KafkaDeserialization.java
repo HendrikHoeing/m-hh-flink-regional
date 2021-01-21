@@ -27,19 +27,23 @@ public class KafkaDeserialization implements KafkaDeserializationSchema<KafkaRec
 
 		Gson gson = new Gson();
 
-		Map<String, Object> metadata = gson.fromJson(new String(record.key(), StandardCharsets.UTF_8), Map.class);
+		try {
+			// Decode and cast to JSON Object
+			rec.data = gson.fromJson(new String(record.value(), StandardCharsets.UTF_8), JsonObject.class);
 
-		rec.key.addProperty("id", (String) metadata.get("id"));
+			rec.key.addProperty("id", rec.data.get("id").getAsString());
 
-		// Decode and cast to JSON Object
-		rec.data = gson.fromJson(new String(record.value(), StandardCharsets.UTF_8), JsonObject.class);
+			rec.timestamp = record.timestamp();
+			rec.topic = record.topic();
+			rec.partition = record.partition();
+			rec.offset = record.offset();
 
-		rec.timestamp = record.timestamp();
-		rec.topic = record.topic();
-		rec.partition = record.partition();
-		rec.offset = record.offset();
-
-		return rec;
+			return rec;
+		} catch (Exception e) {
+			System.out.println("Error deserializing kafka record: " + e.getMessage());
+			System.out.println("Continuing with next record...");
+			return null;
+		}
 	}
 
 	@Override

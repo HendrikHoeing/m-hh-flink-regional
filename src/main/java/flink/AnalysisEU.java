@@ -40,10 +40,8 @@ public class AnalysisEU {
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer);
 
-		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key.get("id").getAsString()); // keyBy
-																														// ->
-																														// High
-																														// costs
+		KeyedStream<KafkaRecord, String> carStream = regionStream.filter(record -> record != null)
+				.keyBy(record -> record.data.get("id").getAsString());
 
 		/// Functions
 
@@ -54,8 +52,8 @@ public class AnalysisEU {
 
 		// REGION Analysis
 		// Counts all active cars every x seconds
-		regionStream.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new ActiveCarsDetector())
-				.addSink(kafkaProducer);
+		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
+				.aggregate(new ActiveCarsDetector()).addSink(kafkaProducer);
 
 		// Count all distinct car models
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(5))) // Every 5 seconds
@@ -72,11 +70,21 @@ public class AnalysisEU {
 				.addSink(kafkaProducer);
 
 		// Position of all cars
-		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new PosProcesser()) //Returns Position of latest record in this timeframe
-				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos()) //Collects positions and creates output record
+		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new PosProcesser()) // Returns
+																										// Position of
+																										// latest record
+																										// in this
+																										// timeframe
+				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos()) // Collects
+																											// positions
+																											// and
+																											// creates
+																											// output
+																											// record
 				.addSink(kafkaProducer);
 
 		env.execute();
 
+		System.out.println("Flink Job started.");
 	}
 }

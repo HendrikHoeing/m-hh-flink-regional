@@ -38,7 +38,7 @@ public class AnalysisUSA {
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer);
 
-		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.key.get("id").getAsString()); // keyBy -> High costs
+		KeyedStream<KafkaRecord, String> carStream = regionStream.keyBy(record -> record.data.get("id").getAsString()); // keyBy -> High costs
 
 
 
@@ -54,7 +54,7 @@ public class AnalysisUSA {
 
 		//REGION Analysis
 		// Counts all active cars every x seconds
-		regionStream.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new ActiveCarsDetector())
+		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new ActiveCarsDetector())
 				.addSink(kafkaProducer);
 
 		// Count all distinct car models
@@ -78,5 +78,6 @@ public class AnalysisUSA {
 
 		env.execute();
 
+		System.out.println("Flink Job started.");
 	}
 }

@@ -13,8 +13,6 @@ public class KafkaSerialization implements KafkaSerializationSchema<KafkaRecord>
 
         Gson gson = new Gson();
 
-        System.out.println("Topic: "+ record.topic + " || Key: " + record.key + " || Value: " + record.data);
-
         if (record.key != null) {
             return new ProducerRecord<byte[], byte[]>(record.topic, gson.toJson(record.key).getBytes(),
                     gson.toJson(record.data).getBytes());
