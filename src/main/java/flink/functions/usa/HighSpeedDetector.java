@@ -27,6 +27,10 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
     @Override
     public KafkaRecord getResult(List<KafkaRecord> accumulator) {
+        /**
+         * Creates kafka record for if speed limit above given threshhold
+         */
+
         JsonObject data = new JsonObject();
         JsonObject key = accumulator.get(0).key;
         Double mphTotal = 0.0;

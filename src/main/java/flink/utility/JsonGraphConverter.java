@@ -4,17 +4,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class JsonGraphConverter {
+    /**
+     * creatse a json graph object based on https://plotly.com/chart-studio-help/json-chart-schema/
+     */
 
-    /*
-    Converts input params to json object
-    */
     public static JsonObject convertGraph(String title, JsonArray x, JsonArray y, String xName, String yName,
             String chartType) {
 
         JsonObject jsonGraph = new JsonObject();
         JsonObject layout = new JsonObject();
 
-        layout.addProperty("title", title);     
+        layout.addProperty("title", title);
         layout.addProperty("labelX", xName);
         layout.addProperty("labelY", yName);
 
@@ -32,8 +32,7 @@ public class JsonGraphConverter {
         JsonObject jsonGraph = new JsonObject();
         JsonObject layout = new JsonObject();
 
-        
-        layout.addProperty("title", title); 
+        layout.addProperty("title", title);
         layout.addProperty("labelX", labelX);
         layout.addProperty("labelY", labelY);
 

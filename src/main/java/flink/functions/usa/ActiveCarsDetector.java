@@ -26,6 +26,9 @@ public class ActiveCarsDetector implements AggregateFunction<KafkaRecord, ArrayL
 
     @Override
     public KafkaRecord getResult(ArrayList<KafkaRecord> accumulator) {
+        /**
+         * Creates json graph object and kafka record for amount of cars at given point
+         */
 
         JsonObject key = new JsonObject();
         JsonObject data = new JsonObject();

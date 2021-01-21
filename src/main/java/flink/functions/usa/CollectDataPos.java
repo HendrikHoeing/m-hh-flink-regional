@@ -18,6 +18,10 @@ public class CollectDataPos extends ProcessAllWindowFunction<Tuple2<Float, Float
     @Override
     public void process(ProcessAllWindowFunction<Tuple2<Float, Float>, KafkaRecord, TimeWindow>.Context context,
             Iterable<Tuple2<Float, Float>> elements, Collector<KafkaRecord> out) throws Exception {
+        /**
+         * Creates json graph object and kafka record for distinct car positions at
+         * given point
+         */
 
         JsonObject key = new JsonObject();
         JsonObject data = new JsonObject();
@@ -35,9 +39,9 @@ public class CollectDataPos extends ProcessAllWindowFunction<Tuple2<Float, Float
         jsonGraph = JsonGraphConverter.convertGraph("Position of cars in the usa", x, y, "", "", "scattergeo");
 
         JsonObject scope = new JsonObject();
-        scope.addProperty("scope","usa");
-        jsonGraph.add("geo",scope);
-        
+        scope.addProperty("scope", "usa");
+        jsonGraph.add("geo", scope);
+
         data.add("jsonGraph", jsonGraph);
         data.add("results", results);
 

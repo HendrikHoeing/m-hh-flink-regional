@@ -24,6 +24,9 @@ public class FuelTypeDetector
 
     @Override
     public Tuple2<String, Integer> getResult(ArrayList<KafkaRecord> accumulator) {
+        /**
+         * Returns fuel type and 1 for distinct car -> is counted later on
+         */
 
         String fuel = "";
 

@@ -23,6 +23,9 @@ public class ModelTypeDetector
 
     @Override
     public Tuple2<String, Integer> getResult(ArrayList<KafkaRecord> accumulator) {
+        /**
+         * Returns model type and 1 for distinct car -> is counted later on
+         */
 
         String model = "";
 

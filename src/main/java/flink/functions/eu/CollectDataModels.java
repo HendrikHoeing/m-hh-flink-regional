@@ -21,6 +21,10 @@ public class CollectDataModels extends ProcessAllWindowFunction<Tuple2<String, I
     @Override
     public void process(ProcessAllWindowFunction<Tuple2<String, Integer>, KafkaRecord, TimeWindow>.Context context,
             Iterable<Tuple2<String, Integer>> elements, Collector<KafkaRecord> out) throws Exception {
+        /**
+         * Creates json graph object and kafka record for car model types and their amount at
+         * given point
+         */
 
         JsonObject key = new JsonObject();
         JsonObject data = new JsonObject();
