@@ -15,7 +15,7 @@ import flink.functions.*;
 import flink.kafka_utility.*;
 import flink.kafka_utility.KafkaRecord;
 
-public class AnalysisEU {
+public class Main {
 
 	public static void main(String[] args) throws Exception {
 
