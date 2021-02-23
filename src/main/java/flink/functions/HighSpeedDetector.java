@@ -1,4 +1,4 @@
-package flink.functions.eu;
+package flink.functions;
 
 import java.util.*;
 import com.google.gson.JsonObject;

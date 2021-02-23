@@ -1,4 +1,4 @@
-package flink.functions.eu;
+package flink.functions;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -13,7 +13,7 @@ import flink.utility.JsonGraphConverter;
 
 public class CollectDataPos extends ProcessAllWindowFunction<Tuple2<Float, Float>, KafkaRecord, TimeWindow> {
 
-    private static final Long serialVersionUID = 1L;
+    private static final long serialVersionUID = -1579990430391501581L;
 
     @Override
     public void process(ProcessAllWindowFunction<Tuple2<Float, Float>, KafkaRecord, TimeWindow>.Context context,
