@@ -49,18 +49,18 @@ public class Main {
 		FlinkKafkaProducer<KafkaRecord> kafkaProducerCar = new FlinkKafkaProducer<KafkaRecord>("car-eu-analysis",
 				new KafkaSerialization("car-eu-analysis"), propertiesConsumer, Semantic.EXACTLY_ONCE);
 
-		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer).uid("Car Stream EU");
+		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer).name("Car Stream EU");
 
 		KeyedStream<KafkaRecord, String> carStream = regionStream.filter(record -> record != null)
 				.keyBy(record -> record.data.get("id").getAsString());
 
 		// Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
-				.filter(record -> record != null).addSink(kafkaProducerCar).uid("High Speed Detector");;
+				.filter(record -> record != null).addSink(kafkaProducerCar).name("High Speed Detector");;
 
 		// Counts all active cars
 		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
-				.aggregate(new ActiveCarsDetector()).addSink(kafkaProducerRegion).uid("Active Cars Detector");;
+				.aggregate(new ActiveCarsDetector()).addSink(kafkaProducerRegion).name("Active Cars Detector");;
 
 		/*
 		 * Count distinct car models
@@ -70,7 +70,7 @@ public class Main {
 		 */
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(5))) // Every 5 seconds
 				.aggregate(new ModelTypeDetector()).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1)))
-				.process(new CollectDataModels()).addSink(kafkaProducerRegion).uid("Model Types Detector");;
+				.process(new CollectDataModels()).addSink(kafkaProducerRegion).name("Model Types Detector");;
 
 		/*
 		 * Count distinct fuel types
@@ -80,7 +80,7 @@ public class Main {
 		 */
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(5))).aggregate(new FuelTypeDetector())
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataFuel())
-				.addSink(kafkaProducerRegion).uid("Fuel Types Detector");;
+				.addSink(kafkaProducerRegion).name("Fuel Types Detector");;
 
 		/*
 		 * Position of all cars
@@ -90,7 +90,7 @@ public class Main {
 		 */
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new PosProcesser())
 				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos())
-				.addSink(kafkaProducerRegion).uid("Position Collector");
+				.addSink(kafkaProducerRegion).name("Position Collector");
 
 		System.out.println("Flink Job started.");
 
