@@ -1,11 +1,7 @@
 package flink.kafka_utility;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.gson.JsonObject;
 
-import org.apache.flink.api.java.tuple.Tuple2;
 
 public class KafkaRecord {
 
