@@ -1,0 +1,87 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'flink'
+version = '1.0'
+mainClassName = 'flink.Main'
+
+//Apply after setting class path
+apply plugin: 'com.github.johnrengelman.shadow'
+
+ext {
+    javaVersion = '1.8'
+    flinkVersion = '1.12.0'
+    scalaBinaryVersion = '2.12'
+}
+
+sourceCompatibility = javaVersion
+targetCompatibility = javaVersion
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    flinkShadowJar
+
+        // always exclude these (also from transitive dependencies) since they are provided by Flink
+    // flinkShadowJar.exclude group: 'org.apache.flink', module: 'force-shading'
+    // flinkShadowJar.exclude group: 'com.google.code.findbugs', module: 'jsr305'
+    // flinkShadowJar.exclude group: 'org.slf4j'
+    // flinkShadowJar.exclude group: 'org.apache.logging.log4j'
+}
+
+dependencies {
+    compile 'org.apache.flink:flink-clients_2.12:1.12.0'
+    compile 'org.apache.flink:flink-streaming-java_2.12:1.12.0'
+    compile 'org.apache.flink:flink-connector-kafka_2.12:1.12.0'
+    compile 'org.apache.kafka:kafka-clients:2.7.0'
+    compile 'com.google.code.gson:gson:2.8.6'
+}
+
+jar {
+  manifest {
+    attributes(
+      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+      'Main-Class': 'flink.Main'
+    )
+  }
+}
+
+// // make compileOnly dependencies available for tests:
+// sourceSets {
+//     main.compileClasspath += configurations.flinkShadowJar
+//     main.runtimeClasspath += configurations.flinkShadowJar
+
+//     test.compileClasspath += configurations.flinkShadowJar
+//     test.runtimeClasspath += configurations.flinkShadowJar
+
+//     javadoc.classpath += configurations.flinkShadowJar
+// }
+
+// run.classpath = sourceSets.main.runtimeClasspath
+
+jar {
+    manifest {
+        attributes 'Built-By': System.getProperty('user.name'),
+                'Build-Jdk': System.getProperty('java.version')
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.flinkShadowJar]
+}

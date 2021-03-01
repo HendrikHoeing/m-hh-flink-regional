@@ -44,15 +44,12 @@ public class Main {
 		KeyedStream<KafkaRecord, String> carStream = regionStream.filter(record -> record != null)
 				.keyBy(record -> record.data.get("id").getAsString());
 
-		/// Functions
 
-		// CAR
 
 		// Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
 				.filter(record -> record != null).addSink(kafkaProducerCar);
 
-		// REGION
 
 		// Counts all active cars
 		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
