@@ -1,7 +1,9 @@
 package flink;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -20,6 +22,14 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, // number of restart attempts
+				10 // delay
+		));
+		env.setRestartStrategy(RestartStrategies.failureRateRestart(3, // max failures per interval
+				org.apache.flink.api.common.time.Time.of(5, TimeUnit.MINUTES), // time interval for measuring failure
+																				// rate
+				org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // delay
+		));
 
 		// parse user parameters
 		// ParameterTool parameterTool = ParameterTool.fromArgs(args);
@@ -44,12 +54,9 @@ public class Main {
 		KeyedStream<KafkaRecord, String> carStream = regionStream.filter(record -> record != null)
 				.keyBy(record -> record.data.get("id").getAsString());
 
-
-
 		// Detect cars with high speed
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
 				.filter(record -> record != null).addSink(kafkaProducerCar);
-
 
 		// Counts all active cars
 		regionStream.filter(record -> record != null).windowAll(TumblingProcessingTimeWindows.of(Time.seconds(5)))
