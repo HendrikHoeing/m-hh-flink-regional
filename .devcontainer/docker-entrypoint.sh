@@ -77,9 +77,11 @@ set_config_option() {
 }
 
 prepare_configuration() {
+    echo "Preparing configuration"
     set_config_option jobmanager.rpc.address ${JOB_MANAGER_RPC_ADDRESS}
     set_config_option blob.server.port 6124
     set_config_option query.server.port 6125
+    set_config_option classloader.resolve-order parent-first
 
     TASK_MANAGER_NUMBER_OF_TASK_SLOTS=${TASK_MANAGER_NUMBER_OF_TASK_SLOTS:-1}
     set_config_option taskmanager.numberOfTaskSlots ${TASK_MANAGER_NUMBER_OF_TASK_SLOTS}
@@ -118,8 +120,11 @@ elif [ "$1" = ${COMMAND_STANDALONE} ]; then
     args=("${args[@]:1}")
 
     echo "Starting Job Manager"
+ 
+    echo "$FLINK_HOME/bin/standalone-job.sh start-foreground --job-classname ${args[@]}"
 
-    exec $(drop_privs_cmd) "$FLINK_HOME/bin/standalone-job.sh" start-foreground "${args[@]}"
+    exec $(drop_privs_cmd) "$FLINK_HOME/bin/standalone-job.sh" start-foreground --job-classname "${args[@]}"    
+    
 elif [ "$1" = ${COMMAND_HISTORY_SERVER} ]; then
     args=("${args[@]:1}")
 

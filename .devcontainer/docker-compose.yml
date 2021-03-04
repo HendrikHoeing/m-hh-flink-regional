@@ -1,10 +1,41 @@
-version: '3.4'
-
+version: "3"
 services:
-  mhhflinkanalysis:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: 'bitnami/kafka:latest'
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper 
+
+  flinkeu:
     image: mhhflinkanalysis
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./docker_file_eu/Dockerfile
     ports:
       - 8081:8081
+
+  flinkusa:
+    image: mhhflinkanalysis
+    build:
+      context: .
+      dockerfile: ./docker_file_usa/Dockerfile
+    ports:
+      - 8082:8082

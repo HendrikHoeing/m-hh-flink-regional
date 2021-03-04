@@ -32,11 +32,11 @@ RUN set -ex; \
   wget -nv -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc"; \
   export GNUPGHOME="$(mktemp -d)"; \
   for server in ha.pool.sks-keyservers.net $(shuf -e \
-                          hkp://p80.pool.sks-keyservers.net:80 \
-                          keyserver.ubuntu.com \
-                          hkp://keyserver.ubuntu.com:80 \
-                          pgp.mit.edu) ; do \
-      gpg --batch --keyserver "$server" --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && break || : ; \
+  hkp://p80.pool.sks-keyservers.net:80 \
+  keyserver.ubuntu.com \
+  hkp://keyserver.ubuntu.com:80 \
+  pgp.mit.edu) ; do \
+  gpg --batch --keyserver "$server" --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && break || : ; \
   done && \
   gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
   gpgconf --kill all; \
@@ -46,15 +46,15 @@ RUN set -ex; \
 
 # Configure Flink version
 ENV FLINK_TGZ_URL=https://www.apache.org/dyn/closer.cgi?action=download&filename=flink/flink-1.12.1/flink-1.12.1-bin-scala_2.11.tgz \
-    FLINK_ASC_URL=https://www.apache.org/dist/flink/flink-1.12.1/flink-1.12.1-bin-scala_2.11.tgz.asc \
-    GPG_KEY=F8E419AA0B60C28879E876859DFF40967ABFC5A4 \
-    CHECK_GPG=true
+  FLINK_ASC_URL=https://www.apache.org/dist/flink/flink-1.12.1/flink-1.12.1-bin-scala_2.11.tgz.asc \
+  GPG_KEY=F8E419AA0B60C28879E876859DFF40967ABFC5A4 \
+  CHECK_GPG=true
 
 # Prepare environment
 ENV FLINK_HOME=/opt/flink
 ENV PATH=$FLINK_HOME/bin:$PATH
 RUN groupadd --system --gid=9999 flink && \
-    useradd --system --home-dir $FLINK_HOME --uid=9999 --gid=flink flink
+  useradd --system --home-dir $FLINK_HOME --uid=9999 --gid=flink flink
 WORKDIR $FLINK_HOME
 
 # Install Flink
@@ -62,18 +62,18 @@ RUN set -ex; \
   wget -nv -O flink.tgz "$FLINK_TGZ_URL"; \
   \
   if [ "$CHECK_GPG" = "true" ]; then \
-    wget -nv -O flink.tgz.asc "$FLINK_ASC_URL"; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    for server in ha.pool.sks-keyservers.net $(shuf -e \
-                            hkp://p80.pool.sks-keyservers.net:80 \
-                            keyserver.ubuntu.com \
-                            hkp://keyserver.ubuntu.com:80 \
-                            pgp.mit.edu) ; do \
-        gpg --batch --keyserver "$server" --recv-keys "$GPG_KEY" && break || : ; \
-    done && \
-    gpg --batch --verify flink.tgz.asc flink.tgz; \
-    gpgconf --kill all; \
-    rm -rf "$GNUPGHOME" flink.tgz.asc; \
+  wget -nv -O flink.tgz.asc "$FLINK_ASC_URL"; \
+  export GNUPGHOME="$(mktemp -d)"; \
+  for server in ha.pool.sks-keyservers.net $(shuf -e \
+  hkp://p80.pool.sks-keyservers.net:80 \
+  keyserver.ubuntu.com \
+  hkp://keyserver.ubuntu.com:80 \
+  pgp.mit.edu) ; do \
+  gpg --batch --keyserver "$server" --recv-keys "$GPG_KEY" && break || : ; \
+  done && \
+  gpg --batch --verify flink.tgz.asc flink.tgz; \
+  gpgconf --kill all; \
+  rm -rf "$GNUPGHOME" flink.tgz.asc; \
   fi; \
   \
   tar -xf flink.tgz --strip-components=1; \
@@ -83,9 +83,9 @@ RUN set -ex; \
 
 # Configure container
 COPY docker-entrypoint.sh /
-COPY target/regional-analysis.jar /
-ENTRYPOINT ["/docker-entrypoint.sh"]
-EXPOSE 6123 8081
+COPY jars/regional-analysis-1.0.jar $FLINK_HOME/lib
+ENTRYPOINT ["/docker-entrypoint.sh", "standalone-job" , "flink.Main", "--bootstrap-servers kafka:9092,localhost:9093", "--topic-car-in car-usa","--topic-car-out car-usa-analysis","--topic-global region-usa-analysis"]
+EXPOSE 6124 8082
 CMD ["help"]
 
-#RUN ./bin/flink run -c flink.Main flinkregional
+#RUN $FLINK_HOME"/bin/taskmanager.sh" start-foreground
