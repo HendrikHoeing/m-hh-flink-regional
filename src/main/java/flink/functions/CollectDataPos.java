@@ -14,6 +14,11 @@ import flink.utility.JsonGraphConverter;
 public class CollectDataPos extends ProcessAllWindowFunction<Tuple2<Float, Float>, KafkaRecord, TimeWindow> {
 
     private static final long serialVersionUID = -1579990430391501581L;
+    private String region;
+
+    public CollectDataPos(String region) {
+        this.region = region;
+    }
 
     @Override
     public void process(ProcessAllWindowFunction<Tuple2<Float, Float>, KafkaRecord, TimeWindow>.Context context,
@@ -35,13 +40,16 @@ public class CollectDataPos extends ProcessAllWindowFunction<Tuple2<Float, Float
             x.add(value.f0);
             y.add(value.f1);
         }
-
-        jsonGraph = JsonGraphConverter.convertGraph("Position of cars in europa", x, y, "", "", "scattergeo");
-
         JsonObject scope = new JsonObject();
-        scope.addProperty("scope", "europa");
-        jsonGraph.add("geo", scope);
 
+        if (region.equals("eu")) {
+            jsonGraph = JsonGraphConverter.convertGraph("Position of cars in europa", x, y, "", "", "scattergeo");
+            scope.addProperty("scope", "europa");
+        } else {
+            jsonGraph = JsonGraphConverter.convertGraph("Position of cars in usa", x, y, "", "", "scattergeo");
+            scope.addProperty("scope", "usa");
+        }
+        jsonGraph.add("geo", scope);
         data.add("jsonGraph", jsonGraph);
         data.add("results", results);
 

@@ -24,18 +24,18 @@ services:
     depends_on:
       - zookeeper 
 
-  flinkeu:
-    image: mhhflinkanalysis
-    build:
-      context: .
-      dockerfile: ./docker_file_eu/Dockerfile
-    ports:
-      - 8081:8081
+  # flinkeu:
+  #   image: mhhflinkanalysis
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker_file_eu/Dockerfile
+  #   ports:
+  #     - 8081:8081
 
-  flinkusa:
-    image: mhhflinkanalysis
-    build:
-      context: .
-      dockerfile: ./docker_file_usa/Dockerfile
-    ports:
-      - 8082:8082
+  # flinkusa:
+  #   image: mhhflinkanalysis
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker_file_usa/Dockerfile
+  #   ports:
+  #     - 8082:8082

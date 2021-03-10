@@ -84,7 +84,7 @@ RUN set -ex; \
 # Configure container
 COPY docker-entrypoint.sh /
 COPY jars/regional-analysis-1.0.jar $FLINK_HOME/lib
-ENTRYPOINT ["/docker-entrypoint.sh", "standalone-job" , "flink.Main", "--bootstrap-servers kafka:9092,localhost:9093", "--topic-car-in car-eu","--topic-car-out car-eu-analysis","--topic-global region-eu-analysis"]
+ENTRYPOINT ["/docker-entrypoint.sh", "standalone-job" , "flink.Main", "--region eu","--bootstrap-servers kafka:9092,localhost:9093", "--topic-car-in car-eu","--topic-car-out car-eu-analysis","--topic-regional-analysis region-eu-analysis","--topic-region-filter region-eu-filter"]
 EXPOSE 6123 8081
 CMD ["help"]
 

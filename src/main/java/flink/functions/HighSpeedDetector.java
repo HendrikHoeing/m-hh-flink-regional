@@ -13,6 +13,12 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
     private static final double HIGH_SPEED = 150.00;
 
+    private String region;
+
+    public HighSpeedDetector(String region) {
+        this.region = region;
+    }
+
     @Override
     public List<KafkaRecord> createAccumulator() {
         return new ArrayList<KafkaRecord>();
@@ -38,7 +44,11 @@ public class HighSpeedDetector implements AggregateFunction<KafkaRecord, List<Ka
 
         // Look through all records
         for (KafkaRecord record : accumulator) {
-            kmhTotal += record.data.get("kmh").getAsDouble();
+            if (region.equals("eu")) {
+                kmhTotal += record.data.get("kmh").getAsDouble();
+            } else {
+                kmhTotal += record.data.get("mph").getAsDouble();
+            }
             numRecords++;
         }
 

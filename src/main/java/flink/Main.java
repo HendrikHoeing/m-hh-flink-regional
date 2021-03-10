@@ -34,36 +34,47 @@ public class Main {
 
 		// parse user parameters
 		ParameterTool parameterTool = ParameterTool.fromArgs(args);
+		String region = parameterTool.get("region") != null ? parameterTool.get("region") : "eu";
 		String bootstrapServers = parameterTool.get("bootstrap-servers") != null
 				? parameterTool.get("bootstrap-servers")
 				: "kafka:9092,localhost:9093";
 		String topicCarIn = parameterTool.get("topic-car-in") != null ? parameterTool.get("topic-car-in") : "car-eu";
 		String topicCarOut = parameterTool.get("topic-car-out") != null ? parameterTool.get("topic-car-out")
 				: "car-eu-analysis";
-		String topicGlobal = parameterTool.get("topic-global") != null ? parameterTool.get("topic-global")
+		String topicRegionalAnalysis = parameterTool.get("topic-region-analysis") != null
+				? parameterTool.get("topic-region-analysis")
 				: "region-eu-analysis";
+		String topicGlobalFilter = parameterTool.get("topic-region-filter") != null
+				? parameterTool.get("topic-region-filter")
+				: "region-eu-filter";
 
 		Properties propertiesConsumer = new Properties();
-		propertiesConsumer.setProperty("bootstrap.servers", bootstrapServers); 
+		propertiesConsumer.setProperty("bootstrap.servers", bootstrapServers);
 		propertiesConsumer.setProperty("group.id", "flink");
 
 		// Consumer
-		FlinkKafkaConsumer<KafkaRecord> kafkaConsumer = new FlinkKafkaConsumer<KafkaRecord>(topicCarIn, new KafkaDeserialization(), propertiesConsumer);
+		FlinkKafkaConsumer<KafkaRecord> kafkaConsumer = new FlinkKafkaConsumer<KafkaRecord>(topicCarIn,
+				new KafkaDeserialization(), propertiesConsumer);
 		kafkaConsumer.setStartFromEarliest();
 
 		// Producer
-		FlinkKafkaProducer<KafkaRecord> kafkaProducerRegion = new FlinkKafkaProducer<KafkaRecord>(topicGlobal,
-				new KafkaSerialization(topicGlobal), propertiesConsumer, Semantic.EXACTLY_ONCE);
+		FlinkKafkaProducer<KafkaRecord> kafkaProducerRegion = new FlinkKafkaProducer<KafkaRecord>(topicRegionalAnalysis,
+				new KafkaSerialization(topicRegionalAnalysis), propertiesConsumer, Semantic.EXACTLY_ONCE);
 		FlinkKafkaProducer<KafkaRecord> kafkaProducerCar = new FlinkKafkaProducer<KafkaRecord>(topicCarOut,
 				new KafkaSerialization(topicCarOut), propertiesConsumer, Semantic.EXACTLY_ONCE);
+		FlinkKafkaProducer<KafkaRecord> kafkaProducerFilter = new FlinkKafkaProducer<KafkaRecord>(topicGlobalFilter,
+				new KafkaSerialization(topicGlobalFilter), propertiesConsumer, Semantic.EXACTLY_ONCE);
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer).name("Car Stream");
 
 		KeyedStream<KafkaRecord, String> carStream = regionStream.filter(record -> record != null)
 				.keyBy(record -> record.data.get("id").getAsString());
 
+		// Filter values for global topic: consumption, co2, geochip, wearing parts
+		carStream.process(new FilterProcessor(region)).addSink(kafkaProducerFilter);
+
 		// Detect cars with high speed
-		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector())
+		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(3))).aggregate(new HighSpeedDetector(region))
 				.filter(record -> record != null).addSink(kafkaProducerCar).name("High Speed Detector");
 		;
 
@@ -101,7 +112,7 @@ public class Main {
 		 * produces output record
 		 */
 		carStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new PosProcesser())
-				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos())
+				.windowAll(TumblingProcessingTimeWindows.of(Time.seconds(1))).process(new CollectDataPos(region))
 				.addSink(kafkaProducerRegion).name("Position Collector");
 
 		System.out.println("Flink Job started.");
