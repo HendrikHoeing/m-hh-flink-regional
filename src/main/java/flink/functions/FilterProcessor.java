@@ -1,11 +1,11 @@
 package flink.functions;
 
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import com.google.gson.JsonObject;
 import flink.kafka_utility.KafkaRecord;
 
-public class FilterProcessor extends KeyedProcessFunction<String, KafkaRecord, KafkaRecord> {
+public class FilterProcessor extends ProcessFunction<KafkaRecord, KafkaRecord> {
 
     /**
      *
@@ -19,12 +19,13 @@ public class FilterProcessor extends KeyedProcessFunction<String, KafkaRecord, K
     }
 
     /**
-     * Filters each kafka records and outputs record with selected values for global analysis
+     * Filters each kafka records and outputs record with selected values for global
+     * analysis
      */
     @Override
-    public void processElement(KafkaRecord record,
-            KeyedProcessFunction<String, KafkaRecord, KafkaRecord>.Context context, Collector<KafkaRecord> out)
-            throws Exception {
+    public void processElement(KafkaRecord record, ProcessFunction<KafkaRecord, KafkaRecord>.Context context,
+            Collector<KafkaRecord> out) throws Exception {
+                
         try {
             JsonObject filteredData = new JsonObject();
 
@@ -43,6 +44,12 @@ public class FilterProcessor extends KeyedProcessFunction<String, KafkaRecord, K
             filteredData.addProperty("mufflerHealth", record.data.get("mufflerHealth").getAsFloat());
             filteredData.addProperty("gearsHealth", record.data.get("gearsHealth").getAsFloat());
             filteredData.addProperty("batteryHealth", record.data.get("batteryHealth").getAsFloat());
+            filteredData.addProperty("model", record.data.get("model").getAsString());
+            filteredData.addProperty("fuel", record.data.get("fuel").getAsString());
+            filteredData.addProperty("lat", record.data.get("lat").getAsFloat());
+            filteredData.addProperty("lon", record.data.get("lon").getAsFloat());
+            
+            filteredData.addProperty("id", record.data.get("id").getAsString());
 
             record.data = filteredData;
             out.collect(record);

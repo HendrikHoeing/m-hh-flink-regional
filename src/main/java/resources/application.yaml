@@ -1,0 +1,16 @@
+server:
+  port: 8081
+
+eureka:
+  # instance:
+  #   statusPageUrlPath: localhost:8081/info
+  #   healthCheckUrlPath: localhost:8081/health
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka 
+    registerWithEureka: true
+    fetchRegistry: false
+
+spring:
+  application:
+    name: flink-eu
