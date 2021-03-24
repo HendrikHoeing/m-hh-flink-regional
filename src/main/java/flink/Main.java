@@ -4,13 +4,18 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
+import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 // import org.springframework.boot.SpringApplication;
 // import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -66,6 +71,9 @@ public class Main {
 		FlinkKafkaConsumer<KafkaRecord> kafkaConsumer = new FlinkKafkaConsumer<KafkaRecord>(topicCarIn,
 				new KafkaDeserialization(), propertiesConsumer);
 		kafkaConsumer.setStartFromLatest();
+		FlinkKafkaConsumer<String> kafkaConsumerRaw = new FlinkKafkaConsumer<String>(topicCarIn,
+				new KafkaDeserializationString(), propertiesConsumer);
+		kafkaConsumerRaw.setStartFromLatest();
 
 		// Producer
 		FlinkKafkaProducer<KafkaRecord> kafkaProducerCar = new FlinkKafkaProducer<KafkaRecord>(topicCarOut,
@@ -75,14 +83,25 @@ public class Main {
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer).name("Car Stream");
 
-		// Filter values for global topic: consumption, co2, geochip, wearing parts
-		regionStream.filter(record -> record != null).process(new FilterProcessor(region)).addSink(kafkaProducerFilter);
+		// Decodes kafka message to string and persists it to the data lake
+		final StreamingFileSink<String> dataLake = StreamingFileSink
+				.forRowFormat(new Path("hdfs://localhost:9000/flink/" + topicCarIn),
+						new SimpleStringEncoder<String>("UTF-8"))
+				.build();
+		env.addSource(kafkaConsumerRaw).print();
+		env.addSource(kafkaConsumerRaw).addSink(dataLake).name("Raw stream to data lake");
 
-		// Health status person
-		regionStream.filter(record -> record != null).process(new HealthProcessor()).addSink(kafkaProducerCar);
+		// // Filter values for global topic: consumption, co2, geochip, wearing parts
+		// regionStream.filter(record -> record != null).process(new
+		// FilterProcessor(region)).addSink(kafkaProducerFilter);
 
-		// Recommendations
-		regionStream.filter(record -> record != null).process(new RecommendationProcessor()).addSink(kafkaProducerCar);
+		// // Health status person
+		// regionStream.filter(record -> record != null).process(new
+		// HealthProcessor()).addSink(kafkaProducerCar);
+
+		// // Recommendations
+		// regionStream.filter(record -> record != null).process(new
+		// RecommendationProcessor()).addSink(kafkaProducerCar);
 
 		System.out.println("Flink Job started.");
 

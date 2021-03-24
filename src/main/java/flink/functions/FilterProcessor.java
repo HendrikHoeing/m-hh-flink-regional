@@ -33,8 +33,8 @@ public class FilterProcessor extends ProcessFunction<KafkaRecord, KafkaRecord> {
                 filteredData.addProperty("consumptionKm", record.data.get("consumptionKm").getAsFloat());
                 filteredData.addProperty("co2Km", record.data.get("co2Km").getAsFloat());
             } else {
-                filteredData.addProperty("consumptionMile", record.data.get("consumptionMile").getAsFloat());
-                filteredData.addProperty("co2Mile", record.data.get("co2Mile").getAsFloat());
+                filteredData.addProperty("consumptionKm", record.data.get("consumptionMile").getAsFloat());
+                filteredData.addProperty("co2Km", record.data.get("co2Mile").getAsFloat());
             }
 
             filteredData.addProperty("geoChip", record.data.get("geoChip").getAsBoolean());
