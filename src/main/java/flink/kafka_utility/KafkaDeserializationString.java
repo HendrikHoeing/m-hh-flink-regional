@@ -30,7 +30,7 @@ public class KafkaDeserializationString implements KafkaDeserializationSchema<St
 			if (record.key() != null) {
 				message.addProperty("key", new String(record.key(), StandardCharsets.UTF_8));
 			}
-			message.addProperty("value", new String(record.value(), StandardCharsets.UTF_8));
+			message.add("value", gson.fromJson(new String(record.value(), StandardCharsets.UTF_8), JsonObject.class));
 
 			return gson.toJson(message);
 		} catch (Exception e) {
