@@ -91,17 +91,17 @@ public class Main {
 		env.addSource(kafkaConsumerRaw).print();
 		env.addSource(kafkaConsumerRaw).addSink(dataLake).name("Raw stream to data lake");
 
-		// // Filter values for global topic: consumption, co2, geochip, wearing parts
-		// regionStream.filter(record -> record != null).process(new
-		// FilterProcessor(region)).addSink(kafkaProducerFilter);
+		// Filter values for global topic: consumption, co2, geochip, wearing parts
+		regionStream.filter(record -> record != null).process(new
+		FilterProcessor(region)).addSink(kafkaProducerFilter);
 
-		// // Health status person
-		// regionStream.filter(record -> record != null).process(new
-		// HealthProcessor()).addSink(kafkaProducerCar);
+		// Health status person
+		regionStream.filter(record -> record != null).process(new
+		HealthProcessor()).addSink(kafkaProducerCar);
 
-		// // Recommendations
-		// regionStream.filter(record -> record != null).process(new
-		// RecommendationProcessor()).addSink(kafkaProducerCar);
+		// Recommendations
+		regionStream.filter(record -> record != null).process(new
+		RecommendationProcessor()).addSink(kafkaProducerCar);
 
 		System.out.println("Flink Job started.");
 
