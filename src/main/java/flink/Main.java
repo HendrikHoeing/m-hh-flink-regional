@@ -5,17 +5,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
-import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
-import org.apache.kafka.clients.producer.ProducerRecord;
 
 // import org.springframework.boot.SpringApplication;
 // import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,6 +20,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import flink.functions.*;
 import flink.kafka_utility.*;
 import flink.kafka_utility.KafkaRecord;
+import flink.utility.ConfigLoader;
 
 // @SpringBootApplication
 // @EnableEurekaClient
@@ -33,6 +30,22 @@ public class Main {
 
 		// Register with Eureka registry
 		// SpringApplication.run(Main.class, args);
+
+		Properties kafkaProperties = null;
+
+        try {
+            kafkaProperties = (new ConfigLoader()).getProperties("kafka.properties");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+
+		String topicCarIn = kafkaProperties.getProperty("topic-car-in");
+		String topicCarOut = kafkaProperties.getProperty("topic-car-out");
+		String topicRegionOut = kafkaProperties.getProperty("topic-region-out");
+		String topicFilterOut = kafkaProperties.getProperty("topic-filter-out");
+		String region = kafkaProperties.getProperty("region");
+
 
 		// TODO https://graphql.org/code/#java-kotlin -> Liste von Werkstätten + Slots,
 		// Tankstellen + Preise
@@ -47,39 +60,20 @@ public class Main {
 				org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // delay
 		));
 
-		// parse user parameters
-		ParameterTool parameterTool = ParameterTool.fromArgs(args);
-		String region = parameterTool.get("region") != null ? parameterTool.get("region") : "eu";
-		String bootstrapServers = parameterTool.get("bootstrap-servers") != null
-				? parameterTool.get("bootstrap-servers")
-				: "localhost:9093";
-		String topicCarIn = parameterTool.get("topic-car-in") != null ? parameterTool.get("topic-car-in") : "car-eu";
-		String topicCarOut = parameterTool.get("topic-car-out") != null ? parameterTool.get("topic-car-out")
-				: "car-eu-analysis";
-		String topicRegionalAnalysis = parameterTool.get("topic-region-analysis") != null
-				? parameterTool.get("topic-region-analysis")
-				: "region-eu-analysis";
-		String topicGlobalFilter = parameterTool.get("topic-region-filter") != null
-				? parameterTool.get("topic-region-filter")
-				: "region-eu-filter";
-
-		Properties propertiesConsumer = new Properties();
-		propertiesConsumer.setProperty("bootstrap.servers", bootstrapServers);
-		propertiesConsumer.setProperty("group.id", "flink");
 
 		// Consumer
 		FlinkKafkaConsumer<KafkaRecord> kafkaConsumer = new FlinkKafkaConsumer<KafkaRecord>(topicCarIn,
-				new KafkaDeserialization(), propertiesConsumer);
-		kafkaConsumer.setStartFromLatest();
+				new KafkaDeserialization(), kafkaProperties);
+		kafkaConsumer.setStartFromGroupOffsets();
 		FlinkKafkaConsumer<String> kafkaConsumerRaw = new FlinkKafkaConsumer<String>(topicCarIn,
-				new KafkaDeserializationString(), propertiesConsumer);
-		kafkaConsumerRaw.setStartFromLatest();
+				new KafkaDeserializationString(), kafkaProperties);
+		kafkaConsumerRaw.setStartFromGroupOffsets();
 
 		// Producer
 		FlinkKafkaProducer<KafkaRecord> kafkaProducerCar = new FlinkKafkaProducer<KafkaRecord>(topicCarOut,
-				new KafkaSerialization(topicCarOut), propertiesConsumer, Semantic.EXACTLY_ONCE);
-		FlinkKafkaProducer<KafkaRecord> kafkaProducerFilter = new FlinkKafkaProducer<KafkaRecord>(topicGlobalFilter,
-				new KafkaSerialization(topicGlobalFilter), propertiesConsumer, Semantic.EXACTLY_ONCE);
+				new KafkaSerialization(topicCarOut), kafkaProperties, Semantic.EXACTLY_ONCE);
+		FlinkKafkaProducer<KafkaRecord> kafkaProducerFilter = new FlinkKafkaProducer<KafkaRecord>(topicFilterOut,
+				new KafkaSerialization(topicFilterOut), kafkaProperties, Semantic.EXACTLY_ONCE);
 
 		DataStream<KafkaRecord> regionStream = env.addSource(kafkaConsumer).name("Car Stream");
 
@@ -88,8 +82,7 @@ public class Main {
 				.forRowFormat(new Path("hdfs://localhost:9000/flink/" + topicCarIn),
 						new SimpleStringEncoder<String>("UTF-8"))
 				.build();
-		env.addSource(kafkaConsumerRaw).print();
-		env.addSource(kafkaConsumerRaw).addSink(dataLake).name("Raw stream to data lake");
+		//env.addSource(kafkaConsumerRaw).addSink(dataLake).name("Raw stream to data lake"); //TODO comment in with HDFS running
 
 		// Filter values for global topic: consumption, co2, geochip, wearing parts
 		regionStream.filter(record -> record != null).process(new
