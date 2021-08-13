@@ -12,24 +12,16 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSin
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
-
-// import org.springframework.boot.SpringApplication;
-// import org.springframework.boot.autoconfigure.SpringBootApplication;
-// import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
 
 import flink.functions.*;
 import flink.kafka_utility.*;
 import flink.kafka_utility.KafkaRecord;
 import flink.utility.ConfigLoader;
 
-// @SpringBootApplication
-// @EnableEurekaClient
 public class Main {
 
 	public static void main(String[] args) throws Exception {
-
-		// Register with Eureka registry
-		// SpringApplication.run(Main.class, args);
 
 		Properties kafkaProperties = null;
 
@@ -42,13 +34,8 @@ public class Main {
 
 		String topicCarIn = kafkaProperties.getProperty("topic-car-in");
 		String topicCarOut = kafkaProperties.getProperty("topic-car-out");
-		String topicRegionOut = kafkaProperties.getProperty("topic-region-out");
 		String topicFilterOut = kafkaProperties.getProperty("topic-filter-out");
 		String region = kafkaProperties.getProperty("region");
-
-
-		// TODO https://graphql.org/code/#java-kotlin -> Liste von Werkstätten + Slots,
-		// Tankstellen + Preise
 
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, // number of restart attempts
@@ -79,10 +66,16 @@ public class Main {
 
 		// Decodes kafka message to string and persists it to the data lake
 		final StreamingFileSink<String> dataLake = StreamingFileSink
-				.forRowFormat(new Path("hdfs://localhost:9000/flink/" + topicCarIn),
+				.forRowFormat(new Path("C:\\Masterarbeit\\data\\eu\\raw\\" + topicCarIn), //"hdfs://namenode:9000/flink/"
 						new SimpleStringEncoder<String>("UTF-8"))
+						.withRollingPolicy(
+							DefaultRollingPolicy.builder()
+								.withRolloverInterval(TimeUnit.MINUTES.toMillis(15))
+								.withInactivityInterval(TimeUnit.MINUTES.toMillis(5))
+								.withMaxPartSize(1024 * 1024 * 1024)
+								.build())
 				.build();
-		//env.addSource(kafkaConsumerRaw).addSink(dataLake).name("Raw stream to data lake"); //TODO comment in with HDFS running
+		env.addSource(kafkaConsumerRaw).addSink(dataLake).name("Raw stream to data lake");
 
 		// Filter values for global topic: consumption, co2, geochip, wearing parts
 		regionStream.filter(record -> record != null).process(new
