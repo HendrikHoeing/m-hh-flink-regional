@@ -32,3 +32,5 @@ build/
 .gradle/
 scripts/
 data-lake/
+
+docker/
