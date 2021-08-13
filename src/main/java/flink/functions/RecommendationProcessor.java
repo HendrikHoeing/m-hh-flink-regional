@@ -32,10 +32,10 @@ public class RecommendationProcessor extends ProcessFunction<KafkaRecord, KafkaR
         Float temperatureInside = record.data.get("temperatureInside").getAsFloat();
 
         if(engineWarning || breaksWarning || lightingSystemFailure){ 
-            data.addProperty("partsWarning", "Please look for a workshop to check your car."); //TODO Liste von Werkstätten, Liste von Slots 
+            data.addProperty("partsWarning", "Please look for a workshop to check your car."); 
         }
         if(estimatedRange < 100 || fuelLevel < 20){
-            data.addProperty("estimatedRange", "Your estimated range is low. Here is a list of gas stations with cheap prices for your fuel type"); //TODO Fuel type, position, liste holen
+            data.addProperty("estimatedRange", "Your estimated range is low. Here is a list of gas stations with cheap prices for your fuel type");
         }
         if(oilLevel < 20){
             data.addProperty("oilLevel", "Seems like your oil level is low. Please refill as soon as possible.");
